@@ -2,19 +2,17 @@
 FROM maven:3.8.5-openjdk-17 AS build
 WORKDIR /app
 
-# Copy the POM file and source code
-COPY pom.xml .
-RUN mvn dependency:go-offline  # Download dependencies first
-COPY src ./src
+# Copy all project files
+COPY . .
 
-# Build the JAR
+# Build the JAR file
 RUN mvn clean package -DskipTests
 
-# Use OpenJDK for runtime
+# Use OpenJDK for running the app
 FROM openjdk:17
 WORKDIR /app
 
-# Copy the JAR from the build stage
+# Copy the built JAR from the previous step
 COPY --from=build /app/target/*.jar app.jar
 
 # Expose port 8080
