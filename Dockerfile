@@ -1,14 +1,22 @@
-# Use an official OpenJDK runtime as a parent image
-FROM eclipse-temurin:17-jdk
-
-# Set the working directory inside the container
+# Use official Maven image to build the project
+FROM maven:3.8.5-openjdk-17 AS build
 WORKDIR /app
 
-# Copy the built JAR file from the target folder (Ensure the JAR is built before running Docker)
-COPY target/StudentManagementSystem-0.0.1-SNAPSHOT.jar app.jar
+# Copy the source code
+COPY . .
 
-# Expose the correct application port
-EXPOSE 9090
+# Build the application
+RUN mvn clean package -DskipTests
 
-# Command to run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Use OpenJDK for runtime
+FROM openjdk:17
+WORKDIR /app
+
+# Copy the JAR file from the build stage
+COPY --from=build /app/target/*.jar app.jar
+
+# Expose port 8080
+EXPOSE 8080
+
+# Run the application
+CMD ["java", "-jar", "app.jar"]
